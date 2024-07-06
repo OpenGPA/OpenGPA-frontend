@@ -1,0 +1,9 @@
+{
+    "version": 2,
+    "route": [
+        {
+            "src": "/api/(.*)",
+            "dest": "/api/index/$1"
+        }
+    ]
+}
