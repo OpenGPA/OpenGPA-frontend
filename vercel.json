@@ -1,6 +1,6 @@
 {
     "version": 2,
-    "route": [
+    "routes": [
         {
             "src": "/api/(.*)",
             "dest": "/api/index/$1"
