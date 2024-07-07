@@ -18,14 +18,14 @@ function App() {
   };
 
   const ClickEvent = () => {
-    fetch("http://localhost:5000/api/v1/getCourses")
+    fetch("/api/v1/getCourses")
       .then(response => response.json())
       .then(result => setAllCourse(result))
       .catch(error => console.log('error', error));
   }
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/v1/getCourses")
+    fetch("/api/v1/getCourses")
       .then(response => response.json())
       .then(result => setAllCourse(result))
       .catch(error => console.log('error', error));
@@ -128,6 +128,7 @@ function App() {
         </ToggleButtonGroup>
         <Typography variant="h4" align="center" gutterBottom>{courseName}</Typography>
         <Typography variant="h6" align="center" gutterBottom>学期: {semester == null ? "所有" : semester}</Typography>
+        
         <Column {...config} />
       </Stack>
     </Container>
