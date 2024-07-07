@@ -18,6 +18,10 @@ function App() {
   };
 
   const ClickEvent = () => {
+    fetch("http://localhost:5000/api/v1/getCourses")
+      .then(response => response.json())
+      .then(result => setAllCourse(result))
+      .catch(error => console.log('error', error));
   }
 
   useEffect(() => {
@@ -99,7 +103,17 @@ function App() {
     <Container maxWidth="md" style={{ marginTop: 60 }}>
       <Stack spacing={2} >
         <Typography variant="h2" align="center" gutterBottom> OpenGPA </Typography>
-        <Button variant="contained" color="primary" fullWidth onClick={ClickEvent}>GET</Button>
+        <Button variant="contained" color="primary" fullWidth onClick={ClickEvent}>获取所有课程</Button>
+        <Select
+          color='primary'
+          label="学期"
+          value={courseName}
+          onChange={(event: SelectChangeEvent) => setCourseName(event.target.value)}
+        >
+          {allCourse.map((value) => (
+            <MenuItem value={value} key={value}>{value}</MenuItem>
+          ))}
+        </Select>
         <ToggleButtonGroup
           color="primary"
           value={semester}
@@ -112,22 +126,6 @@ function App() {
             <ToggleButton value={value} key={value}>{value}</ToggleButton>
           ))}
         </ToggleButtonGroup>
-        {/* <Select
-          color='primary'
-          value={courseName}
-          onChange={(event: SelectChangeEvent) => setCourseName(event.target.value)}
-          label={"CourseName"}
-        /> */}
-        <Select
-          color='primary'
-          value={courseName}
-          onChange={(event: SelectChangeEvent) => setCourseName(event.target.value)}
-          label="CourseName"
-        >
-          {allCourse.map((value) => (
-            <MenuItem value={value} key={value}>{value}</MenuItem>
-          ))}
-        </Select>
         <Typography variant="h4" align="center" gutterBottom>{courseName}</Typography>
         <Typography variant="h6" align="center" gutterBottom>学期: {semester == null ? "所有" : semester}</Typography>
         <Column {...config} />
