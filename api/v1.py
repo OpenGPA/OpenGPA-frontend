@@ -22,7 +22,7 @@ def page_not_found(e):
 
 def get_config() -> dict:
     response = requests.get(CONFIG_URL)
-    return response.json().get('items', {})
+    return response.json()
     # with open('./api/data.json') as f:
     #     return json.load(f)
 
@@ -54,9 +54,9 @@ def return_with_all_key(item: dict) -> dict:
     #     return item
     return result
 
-@app.route('/api/v1/test')
-def test():
-    return os.environ.get('CONFIG_URL')
+# @app.route('/api/v1/test')
+# def test():
+#     return os.environ.get('CONFIG_URL')
 
 @app.route('/api/v1/getCourses')
 def getCourses():
