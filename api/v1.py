@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import json
+import os
 import requests
 
 app = Flask(__name__)
@@ -8,10 +9,13 @@ app = Flask(__name__)
 def ping():
     return 'pong'
 
+@app.route('/api/v1/test')
+def test():
+    return jsonify(os.environ.get('EDGE_CONFIG'))
+
 # Error handler
 @app.errorhandler(404)
 def page_not_found(e):
-    # return jsonify({'error': '404 Not Found'}), 404
     return jsonify({'error': f'Not Found: {request.url}'}), 404
 
 if __name__ == '__main__':
