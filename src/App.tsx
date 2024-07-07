@@ -120,6 +120,9 @@ function App() {
           exclusive
           onChange={handleChange}
           aria-label="Semester"
+          style={{
+            overflow: 'auto'
+          }}
           fullWidth
         >
           {allSemester.map((value) => (
