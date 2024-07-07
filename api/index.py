@@ -11,4 +11,8 @@ def ping():
 # Error handler
 @app.errorhandler(404)
 def page_not_found(e):
-    return jsonify({'error': '404 Not Found'}), 404
+    # return jsonify({'error': '404 Not Found'}), 404
+    return jsonify({'error': f'Not Found: {request.url}'}), 404
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5000)
