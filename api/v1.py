@@ -9,10 +9,6 @@ app = Flask(__name__)
 def ping():
     return 'pong'
 
-@app.route('/api/v1/test')
-def test():
-    return jsonify(os.environ.get('EDGE_CONFIG'))
-
 # Error handler
 @app.errorhandler(404)
 def page_not_found(e):
