@@ -54,6 +54,10 @@ def return_with_all_key(item: dict) -> dict:
     #     return item
     return result
 
+@app.route('/api/v1/test')
+def test():
+    return os.environ.get('CONFIG_URL')
+
 @app.route('/api/v1/getCourses')
 def getCourses():
     item = read_data()
