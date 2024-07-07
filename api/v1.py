@@ -4,7 +4,7 @@ import requests
 
 app = Flask(__name__)
 
-@app.route('/api/ping')
+@app.route('/api/v1/ping')
 def ping():
     return 'pong'
 
