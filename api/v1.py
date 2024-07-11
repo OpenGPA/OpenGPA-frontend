@@ -21,6 +21,9 @@ def page_not_found(e):
     return jsonify({'error': f'Not Found: {request.url}, method: {request.method}'}), 404
 
 def get_config() -> dict:
+    if(CONFIG_URL is None):
+        with open('./api/data.json') as f:
+            return json.load(f)
     response = requests.get(CONFIG_URL)
     return response.json()
     # with open('./api/data.json') as f:

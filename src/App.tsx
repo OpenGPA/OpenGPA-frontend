@@ -1,12 +1,20 @@
-import { Button, Container, MenuItem, Select, SelectChangeEvent, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import { Autocomplete, Button, Container, MenuItem, Select, SelectChangeEvent, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { Graph } from './apihandle';
 import React, { useEffect, useState } from 'react';
 import { Column } from '@ant-design/charts';
 
+function wrapUrl(url: string) {
+  const urlprefix = process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : '';
+  return urlprefix + url;
+}
+
 function App() {
-  const [courseName, setCourseName] = React.useState('数学分析II');
+  const query = new URLSearchParams(window.location.search);
+  const course = query.get('course');
+
+  const [courseName, setCourseName] = React.useState(course == null ? '' : course);
   const [allCourse, setAllCourse] = React.useState([] as string[]);
-  const [semester, setSemester] = React.useState('');
+  const [semester, setSemester] = React.useState(null as string | null);
   const [allSemester, setAllSemester] = React.useState([] as string[]);
   const [data, setData] = useState([] as any[]);
 
@@ -14,25 +22,32 @@ function App() {
     event: React.MouseEvent<HTMLElement>,
     newSemester: string,
   ) => {
-    setSemester(newSemester);
+    if (newSemester == '') {
+      setSemester(null);
+    }
+    else {
+      setSemester(newSemester);
+    }
   };
 
   const ClickEvent = () => {
-    fetch("/api/v1/getCourses")
+    fetch(wrapUrl("/api/v1/getCourses"))
       .then(response => response.json())
       .then(result => setAllCourse(result))
       .catch(error => console.log('error', error));
   }
 
+  // get courses on loaded
   useEffect(() => {
-    fetch("/api/v1/getCourses")
+    fetch(wrapUrl("/api/v1/getCourses"))
       .then(response => response.json())
       .then(result => setAllCourse(result))
       .catch(error => console.log('error', error));
   }, [])
 
+  // get semester on course change
   useEffect(() => {
-    fetch("/api/v1/getSemesterByCourseName", {
+    fetch(wrapUrl("/api/v1/getSemesterByCourseName"), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -48,13 +63,14 @@ function App() {
       })
       .then(result => {
         setAllSemester(result)
-        setSemester('')
+        setSemester(null)
       })
       .catch(error => console.log('error', error));
   }, [courseName])
 
+  // get data on semester / course change
   useEffect(() => {
-    fetch("/api/v1/getGPAByCourseName", {
+    fetch(wrapUrl("/api/v1/getGPAByCourseName"), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -83,7 +99,7 @@ function App() {
       .catch((error) => {
         console.log('fetch data failed', error);
       });
-  }, [semester])
+  }, [semester, courseName])
 
   const config = {
     data,
@@ -104,7 +120,7 @@ function App() {
       <Stack spacing={2} >
         <Typography variant="h2" align="center" gutterBottom> OpenGPA </Typography>
         <Button variant="contained" color="primary" fullWidth onClick={ClickEvent}>获取所有课程</Button>
-        <Select
+        {/* <Select
           color='primary'
           label="学期"
           value={courseName}
@@ -113,7 +129,14 @@ function App() {
           {allCourse.map((value) => (
             <MenuItem value={value} key={value}>{value}</MenuItem>
           ))}
-        </Select>
+        </Select> */}
+        <Autocomplete
+          disablePortal
+          id="combo-box-course"
+          options={allCourse}
+          renderInput={(params) => <TextField {...params} label="课程名称" />}
+          onInputChange={(event, newInputValue) => setCourseName(newInputValue)}
+        />
         <ToggleButtonGroup
           color="primary"
           value={semester}
@@ -131,7 +154,7 @@ function App() {
         </ToggleButtonGroup>
         <Typography variant="h4" align="center" gutterBottom>{courseName}</Typography>
         <Typography variant="h6" align="center" gutterBottom>学期: {semester == null ? "所有" : semester}</Typography>
-        
+
         <Column {...config} />
       </Stack>
     </Container>
