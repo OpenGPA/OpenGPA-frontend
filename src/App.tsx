@@ -26,7 +26,7 @@ interface Overview {
 interface TotalEntry {
   semester: string;
   total: number;
-  a_grade: number;
+  non_a_grade: number;
   ave_gpa: number;
 }
 
@@ -131,7 +131,7 @@ function App() {
           totalresult.push({
             semester: sem,
             total: total,
-            a_grade: aGrade,
+            non_a_grade: total - aGrade,
             ave_gpa: sumGPA / total,
           })
         })
@@ -336,7 +336,7 @@ function App() {
         {
           type: 'area',
           xField: 'semester',
-          yField: ['total', 'a_grade'],
+          yField: ['total', 'non_a_grade'],
           shapeField: 'smooth',
           // transform: [{ type: 'groupX', y: 'mean', y1: 'mean' }],
           style: { fill: '#85c5A6', fillOpacity: 0.3 },
