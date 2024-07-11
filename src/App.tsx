@@ -38,6 +38,7 @@ function App() {
   const [allCourse, setAllCourse] = React.useState([] as string[]);
   const [semester, setSemester] = React.useState(null as string | null);
   const [allSemester, setAllSemester] = React.useState([] as string[]);
+  const [updateTime, setUpdateTime] = React.useState('');
   const [gpaOverview, setGpaOverview] = React.useState([] as GPAOverview[]);
   const [seriesOverview, setSeriesOverview] = React.useState([] as TypeOverview[]);
   const [totalOverview, setTotalOverview] = React.useState([] as TotalEntry[]);
@@ -119,11 +120,11 @@ function App() {
         // total overview
         var totalresult = [] as TotalEntry[];
         semresult.forEach((sem) => {
-          const aGrade = result['gpa'][sem].hasOwnProperty('4.0') ? result['gpa'][sem]['4.0'] : 0 
+          const aGrade = result['gpa'][sem].hasOwnProperty('4.0') ? result['gpa'][sem]['4.0'] : 0
             + result['gpa'][sem].hasOwnProperty('3.7') ? result['gpa'][sem]['3.7'] : 0;
           const total = result['total'][sem];
           const sumGPA = Object.keys(result['gpa'][sem]).reduce((acc, cur) => {
-            if(cur === '未通过')
+            if (cur === '未通过')
               return acc;
             else
               return acc + parseFloat(cur) * result['gpa'][sem][cur];
@@ -135,8 +136,10 @@ function App() {
             ave_gpa: sumGPA / total,
           })
         })
-        console.log(totalresult)
         setTotalOverview(totalresult);
+
+        const update = new Date(result['update'] * 1000);
+        setUpdateTime(update.toLocaleDateString());
       })
       .catch(error => console.log('error', error));
   }, [courseName])
@@ -373,36 +376,29 @@ function App() {
   return (
     <Container maxWidth="md" style={{ marginTop: 60 }}>
       <Stack spacing={2} >
-        <Typography variant="h2" align="center" gutterBottom> OpenGPA </Typography>
-        <Button variant="contained" color="primary" fullWidth onClick={ClickEvent}>获取所有课程</Button>
-        {/* <Select
-          color='primary'
-          label="学期"
-          value={courseName}
-          onChange={(event: SelectChangeEvent) => setCourseName(event.target.value)}
-        >
-          {allCourse.map((value) => (
-            <MenuItem value={value} key={value}>{value}</MenuItem>
-          ))}
-        </Select> */}
-        <Autocomplete
-          disablePortal
-          id="combo-box-course"
-          options={allCourse}
-          renderInput={(params) => <TextField {...params} label="课程名称" />}
-          onChange={(event: any, newValue: string | null) => {
-            if (newValue === null)
-              return;
-            else
-              setCourseName(newValue);
-          }}
-        />
+        {course === null ?
+          (<>
+            <Typography variant="h2" align="center" gutterBottom> OpenGPA </Typography>
+            <Autocomplete
+              disablePortal
+              id="combo-box-course"
+              options={allCourse}
+              renderInput={(params) => <TextField {...params} label="课程名称" />}
+              onChange={(event: any, newValue: string | null) => {
+                if (newValue === null)
+                  return;
+                else
+                  setCourseName(newValue);
+              }}
+            />
+          </>) : (<></>)}
 
         <Card>
           <ARateGraph />
           <CardContent>
             <Typography gutterBottom variant="h4" component="div" style={{ fontWeight: 'bold' }}>{courseName}</Typography>
             <Typography variant="body2" color="textSecondary" gutterBottom>数据来自 OpenGPA 数据库，仅供参考</Typography>
+            <Typography variant="body2" color="textSecondary" gutterBottom>数据库更新时间: {updateTime}</Typography>
             <Grid container
               spacing={{ xs: 2, md: 3 }}
               columns={{ xs: 4, sm: 8, md: 12 }}
