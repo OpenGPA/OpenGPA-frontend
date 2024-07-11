@@ -8,9 +8,26 @@ function wrapUrl(url: string) {
   return urlprefix + url;
 }
 
+interface GPAOverview {
+  semester: string;
+  gpa: string;
+  value: number;
+}
+interface TypeOverview {
+  type: string;
+  value: number;
+}
+
 interface Overview {
   semester: string;
   value: number;
+}
+
+interface TotalEntry {
+  semester: string;
+  total: number;
+  a_grade: number;
+  ave_gpa: number;
 }
 
 function App() {
@@ -21,9 +38,9 @@ function App() {
   const [allCourse, setAllCourse] = React.useState([] as string[]);
   const [semester, setSemester] = React.useState(null as string | null);
   const [allSemester, setAllSemester] = React.useState([] as string[]);
-  const [gpaOverview, setGpaOverview] = React.useState([] as object[]);
-  const [seriesOverview, setSeriesOverview] = React.useState([] as object[]);
-  const [totalOverview, setTotalOverview] = React.useState([] as object[]);
+  const [gpaOverview, setGpaOverview] = React.useState([] as GPAOverview[]);
+  const [seriesOverview, setSeriesOverview] = React.useState([] as TypeOverview[]);
+  const [totalOverview, setTotalOverview] = React.useState([] as TotalEntry[]);
   const [arateOverview, setArateOverview] = React.useState([] as Overview[]);
   const [data, setData] = useState([] as any[]);
 
@@ -66,7 +83,7 @@ function App() {
       .then(response => response.json())
       .then(result => {
         // gpa overview
-        var gparesult = [] as object[];
+        var gparesult = [] as GPAOverview[];
         Object.keys(result['gpa']).forEach((sem) => {
           Object.keys(result['gpa'][sem]).forEach((grade) => {
             gparesult.push({ semester: sem, gpa: grade, value: result['gpa'][sem][grade] })
@@ -78,18 +95,11 @@ function App() {
         setGpaOverview(gparesult);
 
         // series type
-        var seriesresult = [] as object[];
+        var seriesresult = [] as TypeOverview[];
         Object.keys(result['series']).forEach((stutype) => {
           seriesresult.push({ type: stutype, value: result['series'][stutype] })
         });
         setSeriesOverview(seriesresult);
-
-        // total overview
-        var totalresult = [] as object[];
-        Object.keys(result['total']).forEach((sem) => {
-          totalresult.push({ semester: sem, value: result['total'][sem] })
-        });
-        setTotalOverview(totalresult);
 
         // arate overview
         var arateresult = [] as Overview[];
@@ -105,6 +115,28 @@ function App() {
         });
         setAllSemester(semresult)
         setSemester(null)
+
+        // total overview
+        var totalresult = [] as TotalEntry[];
+        semresult.forEach((sem) => {
+          const aGrade = result['gpa'][sem].hasOwnProperty('4.0') ? result['gpa'][sem]['4.0'] : 0 
+            + result['gpa'][sem].hasOwnProperty('3.7') ? result['gpa'][sem]['3.7'] : 0;
+          const total = result['total'][sem];
+          const sumGPA = Object.keys(result['gpa'][sem]).reduce((acc, cur) => {
+            if(cur === '未通过')
+              return acc;
+            else
+              return acc + parseFloat(cur) * result['gpa'][sem][cur];
+          }, 0)
+          totalresult.push({
+            semester: sem,
+            total: total,
+            a_grade: aGrade,
+            ave_gpa: sumGPA / total,
+          })
+        })
+        console.log(totalresult)
+        setTotalOverview(totalresult);
       })
       .catch(error => console.log('error', error));
   }, [courseName])
@@ -156,7 +188,7 @@ function App() {
       tooltip: { channel: 'y0', valueFormatter: '.0%' },
       annotations: [],
     };
-    return <div style={{ height: '400px' }}><Column {...trendConfig} /></div>
+    return <div style={{ height: '400px' }}><Column {...trendConfig} onlyChangeData={true} /></div>
   }
 
   const DetailGraph = () => {
@@ -179,7 +211,7 @@ function App() {
       },
       annotations: [],
     };
-    return <div style={{ height: '650px' }}><Column {...allInfoConfig} /></div>
+    return <div style={{ height: '650px' }}><Column {...allInfoConfig} onlyChangeData={true} /></div>
   }
 
   const ARateGraph = () => {
@@ -299,19 +331,16 @@ function App() {
 
   const TotalGraph = () => {
     const config = {
-      data: {
-        type: 'fetch',
-        value: 'https://assets.antv.antgroup.com/g2/weather.json',
-        transform: [{ type: 'filter', callback: (d: any) => d.location === 'Seattle' }],
-      },
+      data: totalOverview,
       children: [
         {
           type: 'area',
-          xField: (d: any) => new Date(d.date).getUTCMonth(),
-          yField: ['temp_max', 'temp_min'],
-          transform: [{ type: 'groupX', y: 'mean', y1: 'mean' }],
+          xField: 'semester',
+          yField: ['total', 'a_grade'],
+          shapeField: 'smooth',
+          // transform: [{ type: 'groupX', y: 'mean', y1: 'mean' }],
           style: { fill: '#85c5A6', fillOpacity: 0.3 },
-          axis: { y: { title: 'Avg. Temperature (°C)', titleFill: '#85C5A6' } },
+          axis: { y: { title: 'A 人数 / 总人数 (人)', titleFill: '#85C5A6' } },
           tooltip: {
             items: [
               { channel: 'y', valueFormatter: '.1f' },
@@ -321,16 +350,16 @@ function App() {
         },
         {
           type: 'line',
-          xField: (d: any) => new Date(d.date).getMonth(),
-          yField: 'precipitation',
+          xField: 'semester',
+          yField: 'ave_gpa',
           shapeField: 'smooth',
-          transform: [{ type: 'groupX', y: 'mean' }],
+          // transform: [{ type: 'groupX', y: 'mean' }],
           style: { stroke: 'steelblue' },
           scale: { y: { nice: false } },
           axis: {
             y: {
               position: 'right',
-              title: 'Precipitation (inches)',
+              title: '平均绩点',
               titleFill: 'steelblue',
             },
           },
@@ -338,7 +367,7 @@ function App() {
         },
       ],
     };
-    return <DualAxes {...config} />;
+    return <DualAxes {...config} onlyChangeData={true} />;
   }
 
   return (
