@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Column } from '@ant-design/charts';
 
 function wrapUrl(url: string) {
-  const urlprefix = process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : '';
+  const urlprefix = process.env.NODE_ENV !== 'development' ? 'http://localhost:8787' : 'https://api.opengpa.icu';
   return urlprefix + url;
 }
 
