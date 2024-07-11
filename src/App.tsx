@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { Column } from '@ant-design/charts';
 
 function wrapUrl(url: string) {
-  const urlprefix = process.env.NODE_ENV === 'development' ? 'http://localhost:8787' : 'https://api.opengpa.icu';
+  // const urlprefix = process.env.NODE_ENV === 'development' ? 'http://localhost:8787' : 'https://api.opengpa.icu';
+  const urlprefix = 'https://api.opengpa.icu';
   return urlprefix + url;
 }
 
@@ -135,7 +136,12 @@ function App() {
           id="combo-box-course"
           options={allCourse}
           renderInput={(params) => <TextField {...params} label="课程名称" />}
-          onInputChange={(event, newInputValue) => setCourseName(newInputValue)}
+          onChange={(event: any, newValue: string | null) => {
+            if(newValue === null)
+              return;
+            else
+              setCourseName(newValue);
+          }}
         />
         <ToggleButtonGroup
           color="primary"
