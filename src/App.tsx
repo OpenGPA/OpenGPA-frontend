@@ -1,10 +1,12 @@
 import { Autocomplete, Button, Card, CardContent, Container, Grid, MenuItem, Select, SelectChangeEvent, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { Graph } from './apihandle';
 import React, { useEffect, useState } from 'react';
-import { Area, Column, DualAxes, Gauge, Pie, Tiny } from '@ant-design/charts';
+import { AreaChart, AreaChartProps, BarChart, BarChartProps, ColumnChart, ColumnChartProps, DualAxesChartProps, LiquidChart, LiquidChartProps, PieChart, PieChartProps, TinyAreaChart, TinyAreaChartProps } from '@opd/g2plot-react';
+import DualAxes from '@opd/g2plot-react/lib/plots/dual-axes';
 
 function wrapUrl(url: string) {
-  const urlprefix = process.env.NODE_ENV === 'development' ? 'http://localhost:8787' : 'https://api.opengpa.icu';
+  // const urlprefix = process.env.NODE_ENV === 'development' ? 'http://localhost:8787' : 'https://api.opengpa.icu';
+  const urlprefix = "https://api.opengpa.icu";
   return urlprefix + url;
 }
 
@@ -25,8 +27,10 @@ interface Overview {
 
 interface TotalEntry {
   semester: string;
-  total: number;
-  non_a_grade: number;
+  // total: number;
+  // non_a_grade: number;
+  value: number;
+  type: string;
   ave_gpa: number;
 }
 
@@ -131,8 +135,19 @@ function App() {
           }, 0)
           totalresult.push({
             semester: sem,
-            total: total,
-            non_a_grade: total - aGrade,
+            // total: total,
+            // non_a_grade: total - aGrade,
+            value: aGrade,
+            type: 'a',
+            ave_gpa: sumGPA / total,
+          })
+
+          totalresult.push({
+            semester: sem,
+            // total: total,
+            // non_a_grade: total - aGrade,
+            value: total - aGrade,
+            type: 'non-a',
             ave_gpa: sumGPA / total,
           })
         })
@@ -175,117 +190,135 @@ function App() {
   }, [semester, courseName])
 
   const TrendGraph = () => {
-    const trendConfig = {
+    const trendConfig: ColumnChartProps = {
       data: gpaOverview,
       height: 400,
       xField: 'semester',
       yField: 'value',
-      colorField: 'gpa',
-      percent: true,
-      stack: true,
-      interaction: {
-        tooltip: {
-          shared: true,
-        },
-      },
-      tooltip: { channel: 'y0', valueFormatter: '.0%' },
-      annotations: [],
+      seriesField: 'gpa',
+      isPercent: true,
+      isStack: true,
+      // interaction: {
+      //   tooltip: {
+      //     shared: true,
+      //   },
+      // },
+      // tooltip: { channel: 'y0', valueFormatter: '.0%' },
+      // annotations: [],
     };
-    return <div style={{ height: '400px' }}><Column {...trendConfig} onlyChangeData={true} /></div>
+    return <div style={{ height: '450px' }}><ColumnChart {...trendConfig} /></div>
   }
 
   const DetailGraph = () => {
-    const allInfoConfig = {
+    const allInfoConfig: ColumnChartProps = {
       data,
       height: 600,
       xField: 'GPA',
       yField: 'value',
-      stack: true,
-      colorField: 'id',
-      label: {
-        text: (originData: any) => {
-          const val = parseInt(originData.value);
-          if (semester == null)
-            return ''
-          return val;
-        },
-        textBaseline: 'bottom',
-        position: 'inside',
-      },
-      annotations: [],
+      seriesField: 'id',
+      isStack: true,
+      // label: {
+      //   text: (originData: any) => {
+      //     const val = parseInt(originData.value);
+      //     if (semester == null)
+      //       return ''
+      //     return val;
+      //   },
+      //   textBaseline: 'bottom',
+      //   position: 'inside',
+      // },
+      // annotations: [],
     };
-    return <div style={{ height: '650px' }}><Column {...allInfoConfig} onlyChangeData={true} /></div>
+    return <div style={{ height: '650px' }}><ColumnChart {...allInfoConfig} /></div>
   }
 
   const ARateGraph = () => {
     const data = arateOverview;
-    const config = {
+    const config: AreaChartProps = {
       data,
-      // width: 480,
-      height: 80,
-      shapeField: 'smooth',
       xField: 'semester',
       yField: 'value',
-      style: {
-        fill: 'linear-gradient(-90deg, white 0%, #1565c0 100%)',
-        fillOpacity: 0.6,
+      xAxis: false,
+      yAxis: false,
+      height: 80,
+      padding: [5, -70, 0, -70],
+      smooth: true,
+      tooltip: false,
+      areaStyle: () => {
+        // return { fill: 'linear-gradient(-90deg, white 0%, #1565c0 100%)', }
+        return { fill: 'l(270) 0:#ffffff 0.5:#7ec2f3 1:#1890ff' }
       },
       annotations: [
         {
-          type: 'lineY',
-          data: [0.3],
-          label: {
-            text: '30%',
-            position: 'left',
-            style: { textBaseline: 'top' },
+          type: 'line',
+          start: ['min', 0.3],
+          end: ['max', 0.3],
+          text: {
+            content: '30%',
+            offsetY: -2,
+            offsetX: 5,
+            style: {
+              textAlign: 'left',
+              fontSize: 10,
+              fill: 'rgba(44, 53, 66, 0.45)',
+              textBaseline: 'bottom',
+            },
           },
-          style: { stroke: 'rgba(0, 0, 0)' },
-        },
-        {
-          type: 'text',
           style: {
-            text: '3.7+率',
-            x: '50%',
-            y: '50%',
-            textAlign: 'center',
-            fontSize: 16,
-            fillOpacity: 0.5,
-          }
-        }
+            stroke: 'rgba(0, 0, 0, 0.55)',
+          },
+        },
+        // {
+        //   type: 'text',
+        //   style: {
+        //     text: '3.7+率',
+        //     x: '50%',
+        //     y: '50%',
+        //     textAlign: 'center',
+        //     fontSize: 16,
+        //     fillOpacity: 0.5,
+        //   }
+        // }
       ]
     };
-    return <div style={{ height: 80, paddingTop: 10 }}><Tiny.Area {...config} onlyChangeData={true} /></div>;
+    return <div style={{ height: 80, paddingTop: 10 }}><AreaChart {...config} /></div>;
   };
 
   const ARateRecentGraph = () => {
     const percent = (arateOverview.length > 0 ? arateOverview[arateOverview.length - 1].value : 0);
-    const config = {
-      percent,
+    const config: LiquidChartProps = {
+      percent: percent,
       // width: 250,
       height: 250,
       autoFit: true,
-      padding: 20,
-      color: ['#E8EFF5', '#66AFF4'],
-      annotations: [
-        {
-          type: 'text',
-          style: {
-            text: `优秀率\n${(percent * 100).toFixed(2)}%`,
-            x: '50%',
-            y: '50%',
-            textAlign: 'center',
-            fontSize: 16,
-            fontStyle: 'bold',
-          },
+      outline: {
+        border: 4,
+        distance: 8,
+      },
+      wave: {
+        length: 128,
+      },
+      statistic: {
+        title: {
+          formatter: () => '3.7+ 率',
+          style: ({ percent }) => ({
+            fill: percent > 0.65 ? 'white' : 'rgba(44,53,66,0.85)',
+          })
         },
-      ],
+        content: {
+          style: ({ percent }) => ({
+            fill: percent > 0.4 ? 'white' : 'rgba(44,53,66,0.85)',
+            fontSize: '32px'
+          })
+        }
+      }
     };
 
-    return <Tiny.Ring {...config} onlyChangeData={true} />;
+    return <LiquidChart {...config} />;
   }
 
   const PersonaGraph = () => {
-    const config = {
+    const config: PieChartProps = {
       data: seriesOverview,
       height: 250,
       autoFit: true,
@@ -294,83 +327,99 @@ function App() {
       colorField: 'type',
       legend: false,
       innerRadius: 0.6,
-      labels: [
-        { text: 'type', style: { fontSize: 10, fontWeight: 'bold' } },
-        {
-          text: (d: any, i: any, data: any) => (i < data.length - 3 ? d.value : ''),
-          style: {
-            fontSize: 9,
-            dy: 12,
-          },
-        },
-      ],
-      style: {
-        stroke: '#fff',
-        inset: 1,
-        radius: 10,
-      },
-      scale: {
-        color: {
-          palette: 'spectral',
-          offset: (t: any) => t * 0.8 + 0.1,
+      meta: {
+        value: {
+          formatter: (v) => `${v}`,
         },
       },
-      annotations: [
-        {
-          type: 'text',
+      label: {
+        type: 'inner',
+        offset: '-50%',
+        style: {
+          textAlign: 'center',
+        },
+        autoRotate: true,
+        formatter: ({ percent }) => percent < 0.2 ? "" : `${(percent * 100).toFixed(0)}%`,
+      },
+      statistic: {
+        title: {
+          offsetY: -4,
+          customHtml: (container, view, datum) => {
+            const text = datum ? datum.type : '专业分布';
+            return `<div>${text}</div>`;
+          }
+        },
+        content: {
+          offsetY: 4,
           style: {
-            text: '专业分布',
-            x: '50%',
-            y: '50%',
-            textAlign: 'center',
-            fontSize: 20,
-            fontStyle: 'bold',
+            fontSize: '32px',
           },
         },
-      ],
+      },
+      interactions: [{ type: 'element-selected' }, { type: 'element-active' }, { type: 'pie-statistic-active' }],
     };
-    return <Pie {...config} onlyChangeData={true} />;
+    return <PieChart {...config} />;
   }
 
   const TotalGraph = () => {
-    const config = {
-      data: totalOverview,
-      children: [
+    const config: DualAxesChartProps = {
+      data: [totalOverview, totalOverview],
+      xField: 'semester',
+      yField: ['value', 'ave_gpa'],
+
+      geometryOptions: [
         {
-          type: 'area',
-          xField: 'semester',
-          yField: ['total', 'non_a_grade'],
-          shapeField: 'smooth',
-          // transform: [{ type: 'groupX', y: 'mean', y1: 'mean' }],
-          style: { fill: '#85c5A6', fillOpacity: 0.3 },
-          axis: { y: { title: 'A 人数 / 总人数 (人)', titleFill: '#85C5A6' } },
-          tooltip: {
-            items: [
-              { channel: 'y', valueFormatter: '.1f' },
-              { channel: 'y1', valueFormatter: '.1f' },
-            ],
-          },
+          geometry: 'column',
+          isStack: true,
+          seriesField: 'type',
         },
         {
-          type: 'line',
-          xField: 'semester',
-          yField: 'ave_gpa',
-          shapeField: 'smooth',
-          // transform: [{ type: 'groupX', y: 'mean' }],
-          style: { stroke: 'steelblue' },
-          scale: { y: { nice: false } },
-          axis: {
-            y: {
-              position: 'right',
-              title: '平均绩点',
-              titleFill: 'steelblue',
-            },
+          geometry: 'line',
+          color: '#9A67BD',
+          smooth: true,
+          lineStyle: {
+            lineWidth: 2,
+            stroke: '#9A67BD',
           },
-          tooltip: { items: [{ channel: 'y', valueFormatter: '.1f' }] },
         },
       ],
+      // children: [
+      //   {
+      //     type: 'area',
+      //     xField: 'semester',
+      //     yField: ['total', 'non_a_grade'],
+      //     shapeField: 'smooth',
+      //     // transform: [{ type: 'groupX', y: 'mean', y1: 'mean' }],
+      //     style: { fill: '#85c5A6', fillOpacity: 0.3 },
+      //     axis: { y: { title: 'A 人数 / 总人数 (人)', titleFill: '#85C5A6' } },
+      //     tooltip: {
+      //       items: [
+      //         { channel: 'y', valueFormatter: '.1f' },
+      //         { channel: 'y1', valueFormatter: '.1f' },
+      //       ],
+      //     },
+      //   },
+      //   {
+      //     type: 'line',
+      //     xField: 'semester',
+      //     yField: 'ave_gpa',
+      //     shapeField: 'smooth',
+      //     // transform: [{ type: 'groupX', y: 'mean' }],
+      //     style: { stroke: 'steelblue' },
+      //     scale: { y: { nice: false } },
+      //     axis: {
+      //       y: {
+      //         position: 'right',
+      //         title: '平均绩点',
+      //         titleFill: 'steelblue',
+      //       },
+      //     },
+      //     tooltip: { items: [{ channel: 'y', valueFormatter: '.1f' }] },
+      //   },
+      // ],
     };
-    return <DualAxes {...config} onlyChangeData={true} />;
+
+    return <DualAxes {...config} />;
   }
 
   return (
@@ -450,6 +499,7 @@ function App() {
               <ToggleButton value={value} key={value}>{value}</ToggleButton>
             ))}
           </ToggleButtonGroup>
+
           <DetailGraph />
         </Stack>
       </Stack>
