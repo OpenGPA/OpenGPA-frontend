@@ -349,7 +349,7 @@ function App() {
           textAlign: 'center',
         },
         autoRotate: true,
-        formatter: ({ percent }) => percent < 0.2 ? "" : `${(percent * 100).toFixed(0)}%`,
+        content: '{name}',
       },
       statistic: {
         title: {
