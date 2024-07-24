@@ -3,6 +3,7 @@ import { Graph } from './apihandle';
 import React, { useEffect, useState } from 'react';
 import { AreaChart, AreaChartProps, BarChart, BarChartProps, ColumnChart, ColumnChartProps, DualAxesChartProps, LiquidChart, LiquidChartProps, PieChart, PieChartProps, TinyAreaChart, TinyAreaChartProps } from '@opd/g2plot-react';
 import DualAxes from '@opd/g2plot-react/lib/plots/dual-axes';
+import { format } from 'path';
 
 function wrapUrl(url: string) {
   // const urlprefix = process.env.NODE_ENV === 'development' ? 'http://localhost:8787' : 'https://api.opengpa.icu';
@@ -238,10 +239,13 @@ function App() {
       data,
       xField: 'semester',
       yField: 'value',
-      xAxis: false,
+      xAxis: {
+        verticalFactor: 1,
+      },
       yAxis: false,
       height: 80,
-      padding: [5, -70, 0, -70],
+      // padding: [5, -70, 0, -70],
+      padding: [5, -10, 0, -10],
       smooth: true,
       tooltip: false,
       areaStyle: () => {
@@ -249,6 +253,12 @@ function App() {
         return { fill: 'l(270) 0:#ffffff 0.5:#7ec2f3 1:#1890ff' }
       },
       annotations: [
+        {
+          type: 'regionFilter',
+          start: ['min', 0.3],
+          end: ['max', '0'],
+          color: '#D1D6E0',
+        },
         {
           type: 'line',
           start: ['min', 0.3],
