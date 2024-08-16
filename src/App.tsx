@@ -463,7 +463,7 @@ function App() {
                   if (newValue === null)
                     return;
                   else
-                    setCourseName(newValue);
+                    setCourseName(newValue.split(" | ")[0]);
                 }}
               />
             </>) : (<></>)}
