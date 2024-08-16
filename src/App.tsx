@@ -1,13 +1,13 @@
-import { Autocomplete, Button, Card, CardContent, Container, Grid, MenuItem, Select, SelectChangeEvent, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
-import { Graph } from './apihandle';
+import { Autocomplete, Button, Card, CardContent, Container, Grid, IconButton, MenuItem, Select, SelectChangeEvent, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery } from '@mui/material';
 import React, { useEffect, useState } from 'react';
-import { AreaChart, AreaChartProps, BarChart, BarChartProps, ColumnChart, ColumnChartProps, DualAxesChartProps, LiquidChart, LiquidChartProps, PieChart, PieChartProps, TinyAreaChart, TinyAreaChartProps } from '@opd/g2plot-react';
+import { AreaChart, AreaChartProps, BarChart, BarChartProps, ColumnChart, ColumnChartProps, DualAxesChart, DualAxesChartProps, LiquidChart, LiquidChartProps, PieChart, PieChartProps } from '@opd/g2plot-react';
 import DualAxes from '@opd/g2plot-react/lib/plots/dual-axes';
-import { format } from 'path';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
 
 function wrapUrl(url: string) {
-  // const urlprefix = process.env.NODE_ENV === 'development' ? 'http://localhost:8787' : 'https://api.opengpa.icu';
-  const urlprefix = "https://api.opengpa.icu";
+  const urlprefix = process.env.NODE_ENV === 'development' ? 'http://localhost:8787' : 'https://api.opengpa.icu';
+  // const urlprefix = "https://api.opengpa.icu";
   return urlprefix + url;
 }
 
@@ -36,6 +36,18 @@ interface TotalEntry {
 }
 
 function App() {
+  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+
+  const theme = React.useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode: prefersDarkMode ? 'dark' : 'light',
+        },
+      }),
+    [prefersDarkMode],
+  );
+
   const query = new URLSearchParams(window.location.search);
   const course = query.get('course');
 
@@ -125,8 +137,8 @@ function App() {
         // total overview
         var totalresult = [] as TotalEntry[];
         semresult.forEach((sem) => {
-          const aGrade = result['gpa'][sem].hasOwnProperty('4.0') ? result['gpa'][sem]['4.0'] : 0
-            + result['gpa'][sem].hasOwnProperty('3.7') ? result['gpa'][sem]['3.7'] : 0;
+          const aGrade = (result['gpa'][sem].hasOwnProperty('4.0') ? result['gpa'][sem]['4.0'] : 0)
+            + (result['gpa'][sem].hasOwnProperty('3.7') ? result['gpa'][sem]['3.7'] : 0);
           const total = result['total'][sem];
           const sumGPA = Object.keys(result['gpa'][sem]).reduce((acc, cur) => {
             if (cur === '未通过')
@@ -139,7 +151,7 @@ function App() {
             // total: total,
             // non_a_grade: total - aGrade,
             value: aGrade,
-            type: 'a',
+            type: '4.0',
             ave_gpa: sumGPA / total,
           })
 
@@ -148,7 +160,7 @@ function App() {
             // total: total,
             // non_a_grade: total - aGrade,
             value: total - aGrade,
-            type: 'non-a',
+            type: 'non-4.0',
             ave_gpa: sumGPA / total,
           })
         })
@@ -190,25 +202,25 @@ function App() {
       });
   }, [semester, courseName])
 
-  const TrendGraph = () => {
-    const trendConfig: ColumnChartProps = {
-      data: gpaOverview,
-      height: 400,
-      xField: 'semester',
-      yField: 'value',
-      seriesField: 'gpa',
-      isPercent: true,
-      isStack: true,
-      // interaction: {
-      //   tooltip: {
-      //     shared: true,
-      //   },
-      // },
-      // tooltip: { channel: 'y0', valueFormatter: '.0%' },
-      // annotations: [],
-    };
-    return <div style={{ height: '450px' }}><ColumnChart {...trendConfig} /></div>
-  }
+  // const TrendGraph = () => {
+  const trendConfig: ColumnChartProps = {
+    data: gpaOverview,
+    height: 400,
+    xField: 'semester',
+    yField: 'value',
+    seriesField: 'gpa',
+    isPercent: true,
+    isStack: true,
+    // interaction: {
+    //   tooltip: {
+    //     shared: true,
+    //   },
+    // },
+    // tooltip: { channel: 'y0', valueFormatter: '.0%' },
+    // annotations: [],
+  };
+  //   return <div style={{ height: '450px' }}><ColumnChart {...trendConfig} /></div>
+  // }
 
   const DetailGraph = () => {
     const allInfoConfig: ColumnChartProps = {
@@ -233,287 +245,297 @@ function App() {
     return <div style={{ height: '650px' }}><ColumnChart {...allInfoConfig} /></div>
   }
 
-  const ARateGraph = () => {
-    const data = arateOverview;
-    const config: AreaChartProps = {
-      data,
-      xField: 'semester',
-      yField: 'value',
-      xAxis: {
-        verticalFactor: 1,
+  // const ARateGraph = () => {
+  const arateConfig: AreaChartProps = {
+    data: arateOverview,
+    xField: 'semester',
+    yField: 'value',
+    xAxis: {
+      verticalFactor: 1,
+    },
+    yAxis: false,
+    height: 80,
+    // padding: [5, -70, 0, -70],
+    padding: [5, -10, 0, -10],
+    smooth: true,
+    tooltip: false,
+    areaStyle: () => {
+      // return { fill: 'linear-gradient(-90deg, white 0%, #1565c0 100%)', }
+      return { fill: 'l(270) 0:#ffffff 0.5:#7ec2f3 1:#1890ff' }
+    },
+    annotations: [
+      {
+        type: 'regionFilter',
+        start: ['min', 0.3],
+        end: ['max', '0'],
+        color: '#D1D6E0',
+        animate: true,
       },
-      yAxis: false,
-      height: 80,
-      // padding: [5, -70, 0, -70],
-      padding: [5, -10, 0, -10],
-      smooth: true,
-      tooltip: false,
-      areaStyle: () => {
-        // return { fill: 'linear-gradient(-90deg, white 0%, #1565c0 100%)', }
-        return { fill: 'l(270) 0:#ffffff 0.5:#7ec2f3 1:#1890ff' }
-      },
-      annotations: [
-        {
-          type: 'regionFilter',
-          start: ['min', 0.3],
-          end: ['max', '0'],
-          color: '#D1D6E0',
-        },
-        {
-          type: 'line',
-          start: ['min', 0.3],
-          end: ['max', 0.3],
-          text: {
-            content: '30%',
-            offsetY: -2,
-            offsetX: 5,
-            style: {
-              textAlign: 'left',
-              fontSize: 10,
-              fill: 'rgba(44, 53, 66, 0.45)',
-              textBaseline: 'bottom',
-            },
-          },
+      {
+        type: 'line',
+        start: ['min', 0.3],
+        end: ['max', 0.3],
+        text: {
+          content: '30%',
+          offsetY: -2,
+          offsetX: 5,
           style: {
-            stroke: 'rgba(0, 0, 0, 0.55)',
+            textAlign: 'left',
+            fontSize: 10,
+            fill: theme.palette.text.secondary,
+            textBaseline: 'bottom',
           },
         },
-        // {
-        //   type: 'text',
-        //   style: {
-        //     text: '3.7+率',
-        //     x: '50%',
-        //     y: '50%',
-        //     textAlign: 'center',
-        //     fontSize: 16,
-        //     fillOpacity: 0.5,
-        //   }
-        // }
-      ]
-    };
-    return <div style={{ height: 80, paddingTop: 10 }}><AreaChart {...config} /></div>;
+        style: {
+          stroke: theme.palette.text.secondary,
+        },
+      },
+      // {
+      //   type: 'text',
+      //   style: {
+      //     text: '3.7+率',
+      //     x: '50%',
+      //     y: '50%',
+      //     textAlign: 'center',
+      //     fontSize: 16,
+      //     fillOpacity: 0.5,
+      //   }
+      // }
+    ]
+  };
+  //   return <div style={{ height: 80, paddingTop: 10 }}><AreaChart {...config} /></div>;
+  // };
+
+  // const ARateRecentGraph = () => {
+  const arateRecentConfig: LiquidChartProps = {
+    percent: (arateOverview.length > 0 ? arateOverview[arateOverview.length - 1].value : 0),
+    // width: 250,
+    height: 250,
+    autoFit: true,
+    // outline: {
+    //   border: 4,
+    //   distance: 8,
+    // },
+    wave: {
+      length: 128,
+    },
+    statistic: {
+      title: {
+        formatter: () => '3.7+ 率',
+        style: ({ percent }) => ({
+          fill: percent > 0.65 ? 'white' : theme.palette.text.secondary,
+        })
+      },
+      content: {
+        style: ({ percent }) => ({
+          fill: percent > 0.4 ? 'white' : theme.palette.text.secondary,
+          fontSize: '32px'
+        })
+      }
+    }
   };
 
-  const ARateRecentGraph = () => {
-    const percent = (arateOverview.length > 0 ? arateOverview[arateOverview.length - 1].value : 0);
-    const config: LiquidChartProps = {
-      percent: percent,
-      // width: 250,
-      height: 250,
-      autoFit: true,
-      outline: {
-        border: 4,
-        distance: 8,
+  //   return <LiquidChart {...config} />;
+  // }
+
+  // const PersonaGraph = () => {
+  const personaConfig: PieChartProps = {
+    data: seriesOverview,
+    height: 250,
+    autoFit: true,
+    // width: 250,
+    angleField: 'value',
+    colorField: 'type',
+    legend: false,
+    innerRadius: 0.6,
+    meta: {
+      value: {
+        formatter: (v) => `${v}`,
       },
-      wave: {
-        length: 128,
+    },
+    label: {
+      type: 'inner',
+      offset: '-50%',
+      style: {
+        textAlign: 'center',
       },
-      statistic: {
-        title: {
-          formatter: () => '3.7+ 率',
-          style: ({ percent }) => ({
-            fill: percent > 0.65 ? 'white' : 'rgba(44,53,66,0.85)',
-          })
-        },
-        content: {
-          style: ({ percent }) => ({
-            fill: percent > 0.4 ? 'white' : 'rgba(44,53,66,0.85)',
-            fontSize: '32px'
-          })
+      autoRotate: true,
+      // content: '{name}',
+      formatter: ({ percent }) => (percent > 0.03 ? `${(percent * 100).toFixed(0)}%` : ''),
+    },
+    statistic: {
+      title: {
+        offsetY: -4,
+        customHtml: (container, view, datum) => {
+          const text = datum ? datum.type : '专业分布';
+          return `<span style="color:${theme.palette.text.secondary}; padding-top: 2px">${text}</span>`;
         }
-      }
-    };
-
-    return <LiquidChart {...config} />;
-  }
-
-  const PersonaGraph = () => {
-    const config: PieChartProps = {
-      data: seriesOverview,
-      height: 250,
-      autoFit: true,
-      // width: 250,
-      angleField: 'value',
-      colorField: 'type',
-      legend: false,
-      innerRadius: 0.6,
-      meta: {
-        value: {
-          formatter: (v) => `${v}`,
-        },
       },
-      label: {
-        type: 'inner',
-        offset: '-50%',
+      content: {
+        offsetY: 4,
         style: {
-          textAlign: 'center',
-        },
-        autoRotate: true,
-        content: '{name}',
-      },
-      statistic: {
-        title: {
-          offsetY: -4,
-          customHtml: (container, view, datum) => {
-            const text = datum ? datum.type : '专业分布';
-            return `<div>${text}</div>`;
-          }
-        },
-        content: {
-          offsetY: 4,
-          style: {
-            fontSize: '32px',
-          },
+          fontSize: '32px',
+          color: theme.palette.text.secondary,
         },
       },
-      interactions: [{ type: 'element-selected' }, { type: 'element-active' }, { type: 'pie-statistic-active' }],
-    };
-    return <PieChart {...config} />;
-  }
+    },
+    // interactions: [{ type: 'element-selected' }, { type: 'element-active' }, { type: 'pie-statistic-active' }],
+    interactions: [],
+  };
+  //   return <PieChart {...config} />;
+  // }
 
-  const TotalGraph = () => {
-    const config: DualAxesChartProps = {
-      data: [totalOverview, totalOverview],
-      xField: 'semester',
-      yField: ['value', 'ave_gpa'],
+  // const TotalGraph = () => {
+  const totalConfig: DualAxesChartProps = {
+    data: [totalOverview, totalOverview],
+    xField: 'semester',
+    yField: ['value', 'ave_gpa'],
 
-      geometryOptions: [
-        {
-          geometry: 'column',
-          isStack: true,
-          seriesField: 'type',
+    geometryOptions: [
+      {
+        geometry: 'column',
+        isStack: true,
+        seriesField: 'type',
+      },
+      {
+        geometry: 'line',
+        color: '#9A67BD',
+        smooth: true,
+        lineStyle: {
+          lineWidth: 2,
+          stroke: '#9A67BD',
         },
-        {
-          geometry: 'line',
-          color: '#9A67BD',
-          smooth: true,
-          lineStyle: {
-            lineWidth: 2,
-            stroke: '#9A67BD',
-          },
-        },
-      ],
-      // children: [
-      //   {
-      //     type: 'area',
-      //     xField: 'semester',
-      //     yField: ['total', 'non_a_grade'],
-      //     shapeField: 'smooth',
-      //     // transform: [{ type: 'groupX', y: 'mean', y1: 'mean' }],
-      //     style: { fill: '#85c5A6', fillOpacity: 0.3 },
-      //     axis: { y: { title: 'A 人数 / 总人数 (人)', titleFill: '#85C5A6' } },
-      //     tooltip: {
-      //       items: [
-      //         { channel: 'y', valueFormatter: '.1f' },
-      //         { channel: 'y1', valueFormatter: '.1f' },
-      //       ],
-      //     },
-      //   },
-      //   {
-      //     type: 'line',
-      //     xField: 'semester',
-      //     yField: 'ave_gpa',
-      //     shapeField: 'smooth',
-      //     // transform: [{ type: 'groupX', y: 'mean' }],
-      //     style: { stroke: 'steelblue' },
-      //     scale: { y: { nice: false } },
-      //     axis: {
-      //       y: {
-      //         position: 'right',
-      //         title: '平均绩点',
-      //         titleFill: 'steelblue',
-      //       },
-      //     },
-      //     tooltip: { items: [{ channel: 'y', valueFormatter: '.1f' }] },
-      //   },
-      // ],
-    };
+      },
+    ],
+    // children: [
+    //   {
+    //     type: 'area',
+    //     xField: 'semester',
+    //     yField: ['total', 'non_a_grade'],
+    //     shapeField: 'smooth',
+    //     // transform: [{ type: 'groupX', y: 'mean', y1: 'mean' }],
+    //     style: { fill: '#85c5A6', fillOpacity: 0.3 },
+    //     axis: { y: { title: 'A 人数 / 总人数 (人)', titleFill: '#85C5A6' } },
+    //     tooltip: {
+    //       items: [
+    //         { channel: 'y', valueFormatter: '.1f' },
+    //         { channel: 'y1', valueFormatter: '.1f' },
+    //       ],
+    //     },
+    //   },
+    //   {
+    //     type: 'line',
+    //     xField: 'semester',
+    //     yField: 'ave_gpa',
+    //     shapeField: 'smooth',
+    //     // transform: [{ type: 'groupX', y: 'mean' }],
+    //     style: { stroke: 'steelblue' },
+    //     scale: { y: { nice: false } },
+    //     axis: {
+    //       y: {
+    //         position: 'right',
+    //         title: '平均绩点',
+    //         titleFill: 'steelblue',
+    //       },
+    //     },
+    //     tooltip: { items: [{ channel: 'y', valueFormatter: '.1f' }] },
+    //   },
+    // ],
+  };
 
-    return <DualAxes {...config} />;
-  }
+  //   return <DualAxes {...config} />;
+  // }
 
   return (
-    <Container maxWidth="md" style={{ marginTop: 60 }}>
-      <Stack spacing={2} >
-        {course === null ?
-          (<>
-            <Typography variant="h2" align="center" gutterBottom> OpenGPA </Typography>
-            <Autocomplete
-              disablePortal
-              id="combo-box-course"
-              options={allCourse}
-              renderInput={(params) => <TextField {...params} label="课程名称" />}
-              onChange={(event: any, newValue: string | null) => {
-                if (newValue === null)
-                  return;
-                else
-                  setCourseName(newValue);
-              }}
-            />
-          </>) : (<></>)}
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Container maxWidth="md" style={{ marginTop: 60 }}>
+        <Stack spacing={2} >
+          {course === null ?
+            (<>
+              <Typography variant="h2" align="center" gutterBottom> OpenGPA </Typography>
+              <Autocomplete
+                disablePortal
+                id="combo-box-course"
+                options={allCourse}
+                renderInput={(params) => <TextField {...params} label="课程名称" />}
+                onChange={(event: any, newValue: string | null) => {
+                  if (newValue === null)
+                    return;
+                  else
+                    setCourseName(newValue);
+                }}
+              />
+            </>) : (<></>)}
 
-        <Card>
-          <ARateGraph />
-          <CardContent>
-            <Typography gutterBottom variant="h4" component="div" style={{ fontWeight: 'bold' }}>{courseName}</Typography>
-            <Typography variant="body2" color="textSecondary" gutterBottom>数据来自 OpenGPA 数据库，仅供参考</Typography>
-            <Typography variant="body2" color="textSecondary" gutterBottom>数据库更新时间: {updateTime}</Typography>
-            <Grid container
-              spacing={{ xs: 2, md: 3 }}
-              columns={{ xs: 4, sm: 8, md: 12 }}
-              padding={1}
-              direction="row"
-              justifyContent="center"
-              alignItems="center"
-            >
-              <Grid xs={4} sm={6} md={8} item>
-                <TotalGraph />
-              </Grid>
-              <Grid xs={4} sm={2} md={4} columns={4}
-                direction="column"
+          <Card>
+            {/* <ARateGraph /> */}
+            <div style={{ height: 80, paddingTop: 10 }}><AreaChart {...arateConfig} /></div>
+            <CardContent>
+              <Typography gutterBottom variant="h4" component="div" style={{ fontWeight: 'bold', paddingTop: '10px' }}>{courseName}</Typography>
+              <Typography variant="body2" color="textSecondary" gutterBottom>数据来自 OpenGPA 数据库，仅供参考</Typography>
+              <Typography variant="body2" color="textSecondary" gutterBottom>数据库更新时间: {updateTime}</Typography>
+              <Grid container
+                spacing={{ xs: 2, md: 3 }}
+                columns={{ xs: 4, sm: 8, md: 12 }}
+                padding={1}
+                direction="row"
                 justifyContent="center"
-                alignItems="center">
-                <Grid xs={4} item>
-                  <ARateRecentGraph />
+                alignItems="center"
+              >
+                <Grid xs={4} sm={6} md={8} item>
+                  {/* <TotalGraph /> */}
+                  <DualAxes {...totalConfig} />
                 </Grid>
-                <Grid xs={4} item>
-                  <PersonaGraph />
+                <Grid xs={4} sm={2} md={4} columns={4}
+                  direction="column"
+                  justifyContent="center"
+                  alignItems="center">
+                  <Grid xs={4} item>
+                    {/* <ARateRecentGraph /> */}
+                    <LiquidChart {...arateRecentConfig} />
+                  </Grid>
+                  <Grid xs={4} item>
+                    {/* <PersonaGraph /> */}
+                    <PieChart {...personaConfig} />
+                  </Grid>
                 </Grid>
               </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
 
-        <Stack spacing={2}>
-          <Typography variant="h6" align="center" gutterBottom>给分趋势</Typography>
-          <TrendGraph />
+          <Stack spacing={2}>
+            <Typography variant="h6" align="center" gutterBottom>给分趋势</Typography>
+            {/* <TrendGraph /> */}
+            <ColumnChart {...trendConfig} />
+          </Stack>
+
+          <Stack spacing={2}>
+            <Typography variant="h6" align="center" gutterBottom>学期详情</Typography>
+            <Typography variant="body2" align="center" gutterBottom>学期: {semester == null ? "所有" : semester}</Typography>
+            <ToggleButtonGroup
+              id="detail"
+              color="primary"
+              value={semester}
+              exclusive
+              onChange={handleChange}
+              aria-label="Semester"
+              style={{
+                overflow: 'auto'
+              }}
+              fullWidth
+            >
+              {allSemester.map((value) => (
+                <ToggleButton value={value} key={value}>{value}</ToggleButton>
+              ))}
+            </ToggleButtonGroup>
+
+            <DetailGraph />
+          </Stack>
         </Stack>
-
-        <Stack spacing={2}>
-          <Typography variant="h6" align="center" gutterBottom>学期详情</Typography>
-          <Typography variant="body2" align="center" gutterBottom>学期: {semester == null ? "所有" : semester}</Typography>
-          <ToggleButtonGroup
-            id="detail"
-            color="primary"
-            value={semester}
-            exclusive
-            onChange={handleChange}
-            aria-label="Semester"
-            style={{
-              overflow: 'auto'
-            }}
-            fullWidth
-          >
-            {allSemester.map((value) => (
-              <ToggleButton value={value} key={value}>{value}</ToggleButton>
-            ))}
-          </ToggleButtonGroup>
-
-          <DetailGraph />
-        </Stack>
-      </Stack>
-    </Container>
+      </Container>
+    </ThemeProvider>
   );
 }
 
