@@ -1,4 +1,4 @@
-import { Autocomplete, Button, Card, CardContent, Container, Grid, IconButton, MenuItem, Select, SelectChangeEvent, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery } from '@mui/material';
+import { Autocomplete, Button, Card, CardContent, Container, Grid, IconButton, Link, MenuItem, Select, SelectChangeEvent, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { AreaChart, AreaChartProps, BarChart, BarChartProps, ColumnChart, ColumnChartProps, DualAxesChart, DualAxesChartProps, LiquidChart, LiquidChartProps, PieChart, PieChartProps } from '@opd/g2plot-react';
 import DualAxes from '@opd/g2plot-react/lib/plots/dual-axes';
@@ -35,6 +35,16 @@ interface TotalEntry {
   ave_gpa: number;
 }
 
+interface Detail {
+  credit: string;
+  id: string;
+  institute: string;
+  instructor: string;
+  link: string;
+  name: string;
+  nameEn: string;
+}
+
 function App() {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
@@ -56,6 +66,7 @@ function App() {
   const [semester, setSemester] = React.useState(null as string | null);
   const [allSemester, setAllSemester] = React.useState([] as string[]);
   const [updateTime, setUpdateTime] = React.useState('');
+  const [courseDetail, setCourseDetail] = React.useState({} as Detail);
   const [gpaOverview, setGpaOverview] = React.useState([] as GPAOverview[]);
   const [seriesOverview, setSeriesOverview] = React.useState([] as TypeOverview[]);
   const [totalOverview, setTotalOverview] = React.useState([] as TotalEntry[]);
@@ -100,6 +111,9 @@ function App() {
     })
       .then(response => response.json())
       .then(result => {
+        // course detail
+        setCourseDetail(result['detail']);
+
         // gpa overview
         var gparesult = [] as GPAOverview[];
         Object.keys(result['gpa']).forEach((sem) => {
@@ -472,8 +486,11 @@ function App() {
             {/* <ARateGraph /> */}
             <div style={{ height: 80, paddingTop: 10 }}><AreaChart {...arateConfig} /></div>
             <CardContent>
-              <Typography gutterBottom variant="h4" component="div" style={{ fontWeight: 'bold', paddingTop: '10px' }}>{courseName}</Typography>
-              <Typography variant="body2" color="textSecondary" gutterBottom>数据来自 OpenGPA 数据库，仅供参考</Typography>
+              <Typography variant="h4" component="div" style={{ fontWeight: 'bolder', paddingTop: '10px' }}>{courseName}</Typography>
+              <Typography gutterBottom variant="body1" component="div" color="textSecondary">{courseDetail.nameEn}</Typography>
+              {courseDetail.id === '' ? (<></>) : (<Typography gutterBottom variant="body1" component="div" color="textSecondary">{courseDetail.id} | {courseDetail.institute} | {courseDetail.instructor} | {courseDetail.credit} 学分</Typography>)}
+              {courseDetail.link === '' ? (<></>) : (<Link href={courseDetail.link} target="_blank" rel="noreferrer" color="textSecondary">课程大纲</Link>)}
+              <Typography variant="body2" color="textSecondary">数据来自 OpenGPA 数据库，仅供参考</Typography>
               <Typography variant="body2" color="textSecondary" gutterBottom>数据库更新时间: {updateTime}</Typography>
               <Grid container
                 spacing={{ xs: 2, md: 3 }}
