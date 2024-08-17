@@ -1,4 +1,4 @@
-import { Autocomplete, Button, Card, CardContent, Container, Grid, IconButton, Link, MenuItem, Select, SelectChangeEvent, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery } from '@mui/material';
+import { Autocomplete, Backdrop, Button, Card, CardContent, CircularProgress, Container, Grid, IconButton, Link, MenuItem, Select, SelectChangeEvent, Skeleton, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { AreaChart, AreaChartProps, BarChart, BarChartProps, ColumnChart, ColumnChartProps, DualAxesChart, DualAxesChartProps, LiquidChart, LiquidChartProps, PieChart, PieChartProps } from '@opd/g2plot-react';
 import DualAxes from '@opd/g2plot-react/lib/plots/dual-axes';
@@ -71,6 +71,7 @@ function App() {
   const [seriesOverview, setSeriesOverview] = React.useState([] as TypeOverview[]);
   const [totalOverview, setTotalOverview] = React.useState([] as TotalEntry[]);
   const [arateOverview, setArateOverview] = React.useState([] as Overview[]);
+  const [backdropOpened, setBackdropOpened] = React.useState(false);
   const [data, setData] = useState([] as any[]);
 
   const handleChange = (
@@ -94,14 +95,17 @@ function App() {
 
   // get courses on loaded
   useEffect(() => {
+    setBackdropOpened(true);
     fetch(wrapUrl("/api/v1/getCourses"))
       .then(response => response.json())
       .then(result => setAllCourse(result))
-      .catch(error => console.log('error', error));
+      .catch(error => console.log('error', error))
+      .finally(() => setBackdropOpened(false));
   }, [])
 
   // get overview on course change
   useEffect(() => {
+    setBackdropOpened(true);
     fetch(wrapUrl("/api/v1/getOverviewByCourseName"), {
       method: 'POST',
       headers: {
@@ -183,7 +187,8 @@ function App() {
         const update = new Date(result['update'] * 1000);
         setUpdateTime(update.toLocaleDateString());
       })
-      .catch(error => console.log('error', error));
+      .catch(error => console.log('error', error))
+      .finally(() => setBackdropOpened(false));
   }, [courseName])
 
   // get data on semester / course change
@@ -463,6 +468,12 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={backdropOpened}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
       <Container maxWidth="md" style={{ marginTop: 60 }}>
         <Stack spacing={2} >
           {course === null ?
@@ -484,7 +495,8 @@ function App() {
 
           <Card>
             {/* <ARateGraph /> */}
-            <div style={{ height: 80, paddingTop: 10 }}><AreaChart {...arateConfig} /></div>
+            {backdropOpened ? (<Skeleton variant="rectangular" width="100%" height={80} />) :
+              (<div style={{ height: 80, paddingTop: 10 }}><AreaChart {...arateConfig} /></div>)}
             <CardContent>
               <Typography variant="h4" component="div" style={{ fontWeight: 'bolder', paddingTop: '10px' }}>{courseName}</Typography>
               <Typography gutterBottom variant="body1" component="div" color="textSecondary">{courseDetail.nameEn}</Typography>
