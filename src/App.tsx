@@ -58,10 +58,16 @@ function App() {
     [prefersDarkMode],
   );
 
+  // Headless mode if course is specified
   const query = new URLSearchParams(window.location.search);
   const course = query.get('course');
 
-  const [courseName, setCourseName] = React.useState(course == null ? '计算机编程' : course);
+  // Get #
+
+  // urldecode hash
+  const hash = course == null ? decodeURIComponent(window.location.hash.substring(1)) : course;
+
+  const [courseName, setCourseName] = React.useState(hash == ''? '信息科学技术导论' : hash);
   const [allCourse, setAllCourse] = React.useState([] as string[]);
   const [semester, setSemester] = React.useState(null as string | null);
   const [allSemester, setAllSemester] = React.useState([] as string[]);
@@ -169,7 +175,7 @@ function App() {
             // total: total,
             // non_a_grade: total - aGrade,
             value: aGrade,
-            type: '4.0',
+            type: '3.7+',
             ave_gpa: sumGPA / total,
           })
 
@@ -178,7 +184,7 @@ function App() {
             // total: total,
             // non_a_grade: total - aGrade,
             value: total - aGrade,
-            type: 'non-4.0',
+            type: '其他',
             ave_gpa: sumGPA / total,
           })
         })
@@ -340,7 +346,7 @@ function App() {
     },
     statistic: {
       title: {
-        formatter: () => '3.7+ 率',
+        formatter: (data) => '3.7+ 率' + `${data?.percent < 0.1? ' 疑似数据不足':''}`,
         style: ({ percent }) => ({
           fill: percent > 0.65 ? 'white' : theme.palette.text.secondary,
         })
@@ -487,8 +493,10 @@ function App() {
                 onChange={(event: any, newValue: string | null) => {
                   if (newValue === null)
                     return;
-                  else
+                  else {
                     setCourseName(newValue.split(" | ")[0]);
+                    window.location.hash = newValue.split(" | ")[0];
+                  }
                 }}
               />
             </>) : (<></>)}
