@@ -1,5 +1,5 @@
 import { Autocomplete, Backdrop, Button, Card, CardContent, CircularProgress, Container, Grid, IconButton, Link, MenuItem, Select, SelectChangeEvent, Skeleton, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { AreaChart, AreaChartProps, BarChart, BarChartProps, ColumnChart, ColumnChartProps, DualAxesChart, DualAxesChartProps, LiquidChart, LiquidChartProps, PieChart, PieChartProps } from '@opd/g2plot-react';
 import DualAxes from '@opd/g2plot-react/lib/plots/dual-axes';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -45,6 +45,65 @@ interface Detail {
   nameEn: string;
 }
 
+
+const arateConfig: AreaChartProps = {
+  data: [],
+  xField: 'semester',
+  yField: 'value',
+  xAxis: {
+    verticalFactor: 1,
+  },
+  yAxis: false,
+  height: 80,
+  // padding: [5, -70, 0, -70],
+  padding: [5, -10, 0, -10],
+  smooth: true,
+  tooltip: false,
+  areaStyle: () => {
+    // return { fill: 'linear-gradient(-90deg, white 0%, #1565c0 100%)', }
+    return { fill: 'l(270) 0:#ffffff 0.5:#7ec2f3 1:#1890ff' }
+  },
+  annotations: [
+    // {
+    //   type: 'regionFilter',
+    //   start: ['min', 0.3],
+    //   end: ['max', '0'],
+    //   color: '#D1D6E0',
+    //   animate: false,
+    // },
+    {
+      type: 'line',
+      start: ['min', 0.3],
+      end: ['max', 0.3],
+      text: {
+        content: '30%',
+        offsetY: -2,
+        offsetX: 5,
+        style: {
+          textAlign: 'left',
+          fontSize: 10,
+          // fill: theme.palette.text.secondary,
+          textBaseline: 'bottom',
+        },
+      },
+      style: {
+        // stroke: theme.palette.text.secondary,
+      },
+    },
+    // {
+    //   type: 'text',
+    //   style: {
+    //     text: '3.7+率',
+    //     x: '50%',
+    //     y: '50%',
+    //     textAlign: 'center',
+    //     fontSize: 16,
+    //     fillOpacity: 0.5,
+    //   }
+    // }
+  ]
+};
+
 function App() {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
@@ -67,7 +126,7 @@ function App() {
   // urldecode hash
   const hash = course == null ? decodeURIComponent(window.location.hash.substring(1)) : course;
 
-  const [courseName, setCourseName] = React.useState(hash == ''? '信息科学技术导论' : hash);
+  const [courseName, setCourseName] = React.useState(hash == '' ? '信息科学技术导论' : hash);
   const [allCourse, setAllCourse] = React.useState([] as string[]);
   const [semester, setSemester] = React.useState(null as string | null);
   const [allSemester, setAllSemester] = React.useState([] as string[]);
@@ -247,7 +306,7 @@ function App() {
   //   return <div style={{ height: '450px' }}><ColumnChart {...trendConfig} /></div>
   // }
 
-  const DetailGraph = () => {
+  const DetailGraph = useCallback(() => {
     const allInfoConfig: ColumnChartProps = {
       data,
       height: 600,
@@ -268,66 +327,9 @@ function App() {
       // annotations: [],
     };
     return <div style={{ height: '650px' }}><ColumnChart {...allInfoConfig} /></div>
-  }
+  }, [data])
 
   // const ARateGraph = () => {
-  const arateConfig: AreaChartProps = {
-    data: arateOverview,
-    xField: 'semester',
-    yField: 'value',
-    xAxis: {
-      verticalFactor: 1,
-    },
-    yAxis: false,
-    height: 80,
-    // padding: [5, -70, 0, -70],
-    padding: [5, -10, 0, -10],
-    smooth: true,
-    tooltip: false,
-    areaStyle: () => {
-      // return { fill: 'linear-gradient(-90deg, white 0%, #1565c0 100%)', }
-      return { fill: 'l(270) 0:#ffffff 0.5:#7ec2f3 1:#1890ff' }
-    },
-    annotations: [
-      {
-        type: 'regionFilter',
-        start: ['min', 0.3],
-        end: ['max', '0'],
-        color: '#D1D6E0',
-        animate: true,
-      },
-      {
-        type: 'line',
-        start: ['min', 0.3],
-        end: ['max', 0.3],
-        text: {
-          content: '30%',
-          offsetY: -2,
-          offsetX: 5,
-          style: {
-            textAlign: 'left',
-            fontSize: 10,
-            fill: theme.palette.text.secondary,
-            textBaseline: 'bottom',
-          },
-        },
-        style: {
-          stroke: theme.palette.text.secondary,
-        },
-      },
-      // {
-      //   type: 'text',
-      //   style: {
-      //     text: '3.7+率',
-      //     x: '50%',
-      //     y: '50%',
-      //     textAlign: 'center',
-      //     fontSize: 16,
-      //     fillOpacity: 0.5,
-      //   }
-      // }
-    ]
-  };
   //   return <div style={{ height: 80, paddingTop: 10 }}><AreaChart {...config} /></div>;
   // };
 
@@ -346,7 +348,7 @@ function App() {
     },
     statistic: {
       title: {
-        formatter: (data) => '3.7+ 率' + `${data?.percent < 0.1? ' 疑似数据不足':''}`,
+        formatter: (data) => '3.7+ 率' + `${data?.percent < 0.1 ? ' 疑似数据不足' : ''}`,
         style: ({ percent }) => ({
           fill: percent > 0.65 ? 'white' : theme.palette.text.secondary,
         })
@@ -503,8 +505,9 @@ function App() {
 
           <Card>
             {/* <ARateGraph /> */}
-            {backdropOpened ? (<Skeleton variant="rectangular" width="100%" height={80} />) :
-              (<div style={{ height: 80, paddingTop: 10 }}><AreaChart {...arateConfig} /></div>)}
+            {/* {backdropOpened ? (<Skeleton variant="rectangular" width="100%" height={80} />) :
+              (<div style={{ height: 80, paddingTop: 10 }}><AreaChart {...arateConfig} /></div>)} */}
+            <div style={{ height: 80, paddingTop: 10 }}><AreaChart {...arateConfig} data={arateOverview} /></div>
             <CardContent>
               <Typography variant="h4" component="div" style={{ fontWeight: 'bolder', paddingTop: '10px' }}>{courseName}</Typography>
               <Typography gutterBottom variant="body1" component="div" color="textSecondary">{courseDetail.nameEn}</Typography>
