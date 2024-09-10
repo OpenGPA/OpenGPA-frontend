@@ -1,4 +1,4 @@
-import { Autocomplete, Backdrop, Button, Card, CardContent, CircularProgress, Container, Grid, IconButton, Link, MenuItem, Select, SelectChangeEvent, Skeleton, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery } from '@mui/material';
+import { Autocomplete, Backdrop, Button, Card, CardContent, CircularProgress, Container, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, IconButton, Link, MenuItem, Select, SelectChangeEvent, Skeleton, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
 import { AreaChart, AreaChartProps, BarChart, BarChartProps, ColumnChart, ColumnChartProps, DualAxesChart, DualAxesChartProps, LiquidChart, LiquidChartProps, PieChart, PieChartProps } from '@opd/g2plot-react';
 import DualAxes from '@opd/g2plot-react/lib/plots/dual-axes';
@@ -137,6 +137,8 @@ function App() {
   const [totalOverview, setTotalOverview] = React.useState([] as TotalEntry[]);
   const [arateOverview, setArateOverview] = React.useState([] as Overview[]);
   const [backdropOpened, setBackdropOpened] = React.useState(false);
+  const [semesterLoading, setSemesterLoading] = React.useState(false);
+  const [dialogOpen, setDialogOpen] = React.useState(false);
   const [data, setData] = useState([] as any[]);
 
   const handleChange = (
@@ -258,6 +260,7 @@ function App() {
 
   // get data on semester / course change
   useEffect(() => {
+    setSemesterLoading(true);
     fetch(wrapUrl("/api/v1/getGPAByCourseName"), {
       method: 'POST',
       headers: {
@@ -283,7 +286,8 @@ function App() {
       })
       .catch((error) => {
         console.log('fetch data failed', error);
-      });
+      })
+      .finally(() => setSemesterLoading(false));
   }, [semester, courseName])
 
   // const TrendGraph = () => {
@@ -326,7 +330,7 @@ function App() {
       // },
       // annotations: [],
     };
-    return <div style={{ height: '650px' }}><ColumnChart {...allInfoConfig} /></div>
+    return <div style={{ height: '650px', transition: 'opacity 0.5s linear' }}><ColumnChart {...allInfoConfig} /></div>
   }, [data])
 
   // const ARateGraph = () => {
@@ -571,7 +575,67 @@ function App() {
               ))}
             </ToggleButtonGroup>
 
-            <DetailGraph />
+            {semesterLoading ? <Skeleton height={650} variant="rounded" /> : <DetailGraph />}
+
+            <Typography variant="body2" align="center" color="textSecondary" >
+              数据来自 OpenGPA 数据库，仅供参考
+              <br />
+              数据由同学自发填写提供，OpenGPA 不对数据的准确性负责
+              <br />
+              提供更多数据，让 OpenGPA 更加完善
+            </Typography>
+
+            <Button variant="contained" color="primary" onClick={() => setDialogOpen(true)}  style={{ marginBottom: '50px' }}>提供数据</Button>
+
+            <Dialog
+              open={dialogOpen}
+              onClose={() => setDialogOpen(false)}
+              aria-labelledby="alert-dialog-title"
+              aria-describedby="alert-dialog-description"
+            >
+              <DialogTitle id="alert-dialog-title">
+                {"提交 GPA / 课程数据"}
+              </DialogTitle>
+              <DialogContent>
+                <DialogContentText id="alert-dialog-description">
+                  当前时段暂未开放数据提交或已结束，如有需要请联系 admin@opengpa.icu
+
+                  <TextField
+                    autoFocus
+                    margin="dense"
+                    id="class"
+                    label="课程名"
+                    type="text"
+                    fullWidth
+                    disabled
+                  />
+                  <TextField
+                    autoFocus
+                    margin="dense"
+                    id="semester"
+                    label="学期"
+                    type="text"
+                    fullWidth
+                    disabled
+                  />
+                  <TextField
+                    autoFocus
+                    margin="dense"
+                    id="gpa"
+                    label="GPA"
+                    type="text"
+                    fullWidth
+                    disabled
+                  />
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setDialogOpen(false)}>取消</Button>
+                <Button onClick={() => setDialogOpen(false)} autoFocus disabled>
+                  提交
+                </Button>
+              </DialogActions>
+            </Dialog>
           </Stack>
         </Stack>
       </Container>
