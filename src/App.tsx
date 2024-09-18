@@ -45,7 +45,7 @@ interface Detail {
   nameEn: string;
 }
 
-
+// Chart Config
 const arateConfig: AreaChartProps = {
   data: [],
   xField: 'semester',
@@ -103,6 +103,92 @@ const arateConfig: AreaChartProps = {
     // }
   ]
 };
+
+
+const totalConfig: DualAxesChartProps = {
+  data: [],
+  xField: 'semester',
+  yField: ['value', 'ave_gpa'],
+
+  geometryOptions: [
+    {
+      geometry: 'column',
+      isStack: true,
+      seriesField: 'type',
+    },
+    {
+      geometry: 'line',
+      color: '#9A67BD',
+      smooth: true,
+      lineStyle: {
+        lineWidth: 2,
+        stroke: '#9A67BD',
+      },
+      
+    },
+  ],
+  tooltip: {
+    shared: true,
+    showCrosshairs: true,
+    formatter: (items: any) => {
+      if(JSON.stringify(items).includes("type"))
+        return {
+          name: items.type,
+          value: items.value,
+        };
+      else
+        return {
+          name: "平均 GPA",
+          value: items.ave_gpa.toFixed(2),
+      }
+    }
+  }
+  // children: [
+  //   {
+  //     type: 'area',
+  //     xField: 'semester',
+  //     yField: ['total', 'non_a_grade'],
+  //     shapeField: 'smooth',
+  //     // transform: [{ type: 'groupX', y: 'mean', y1: 'mean' }],
+  //     style: { fill: '#85c5A6', fillOpacity: 0.3 },
+  //     axis: { y: { title: 'A 人数 / 总人数 (人)', titleFill: '#85C5A6' } },
+  //     tooltip: {
+  //       items: [
+  //         { channel: 'y', valueFormatter: '.1f' },
+  //         { channel: 'y1', valueFormatter: '.1f' },
+  //       ],
+  //     },
+  //   },
+  //   {
+  //     type: 'line',
+  //     xField: 'semester',
+  //     yField: 'ave_gpa',
+  //     shapeField: 'smooth',
+  //     // transform: [{ type: 'groupX', y: 'mean' }],
+  //     style: { stroke: 'steelblue' },
+  //     scale: { y: { nice: false } },
+  //     axis: {
+  //       y: {
+  //         position: 'right',
+  //         title: '平均绩点',
+  //         titleFill: 'steelblue',
+  //       },
+  //     },
+  //     tooltip: { items: [{ channel: 'y', valueFormatter: '.1f' }] },
+  //   },
+  // ],
+};
+
+const trendConfig: ColumnChartProps = {
+  data: [],
+  height: 400,
+  xField: 'semester',
+  yField: 'value',
+  seriesField: 'gpa',
+  isPercent: true,
+  isStack: true,
+};
+
 
 function App() {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
@@ -290,56 +376,28 @@ function App() {
       .finally(() => setSemesterLoading(false));
   }, [semester, courseName])
 
-  // const TrendGraph = () => {
-  const trendConfig: ColumnChartProps = {
-    data: gpaOverview,
-    height: 400,
-    xField: 'semester',
+  const allInfoConfig: ColumnChartProps = {
+    data: [],
+    height: 600,
+    xField: 'GPA',
     yField: 'value',
-    seriesField: 'gpa',
-    isPercent: true,
+    seriesField: 'id',
     isStack: true,
-    // interaction: {
-    //   tooltip: {
-    //     shared: true,
+    // label: {
+    //   text: (originData: any) => {
+    //     const val = parseInt(originData.value);
+    //     if (semester == null)
+    //       return ''
+    //     return val;
     //   },
+    //   textBaseline: 'bottom',
+    //   position: 'inside',
     // },
-    // tooltip: { channel: 'y0', valueFormatter: '.0%' },
     // annotations: [],
   };
-  //   return <div style={{ height: '450px' }}><ColumnChart {...trendConfig} /></div>
-  // }
-
-  const DetailGraph = useCallback(() => {
-    const allInfoConfig: ColumnChartProps = {
-      data,
-      height: 600,
-      xField: 'GPA',
-      yField: 'value',
-      seriesField: 'id',
-      isStack: true,
-      // label: {
-      //   text: (originData: any) => {
-      //     const val = parseInt(originData.value);
-      //     if (semester == null)
-      //       return ''
-      //     return val;
-      //   },
-      //   textBaseline: 'bottom',
-      //   position: 'inside',
-      // },
-      // annotations: [],
-    };
-    return <div style={{ height: '650px', transition: 'opacity 0.5s linear' }}><ColumnChart {...allInfoConfig} /></div>
-  }, [data])
-
-  // const ARateGraph = () => {
-  //   return <div style={{ height: 80, paddingTop: 10 }}><AreaChart {...config} /></div>;
-  // };
-
-  // const ARateRecentGraph = () => {
+  
   const arateRecentConfig: LiquidChartProps = {
-    percent: (arateOverview.length > 0 ? arateOverview[arateOverview.length - 1].value : 0),
+    percent: 0,
     // width: 250,
     height: 250,
     autoFit: true,
@@ -366,12 +424,8 @@ function App() {
     }
   };
 
-  //   return <LiquidChart {...config} />;
-  // }
-
-  // const PersonaGraph = () => {
   const personaConfig: PieChartProps = {
-    data: seriesOverview,
+    data: [],
     height: 250,
     autoFit: true,
     // width: 250,
@@ -413,69 +467,6 @@ function App() {
     // interactions: [{ type: 'element-selected' }, { type: 'element-active' }, { type: 'pie-statistic-active' }],
     interactions: [],
   };
-  //   return <PieChart {...config} />;
-  // }
-
-  // const TotalGraph = () => {
-  const totalConfig: DualAxesChartProps = {
-    data: [totalOverview, totalOverview],
-    xField: 'semester',
-    yField: ['value', 'ave_gpa'],
-
-    geometryOptions: [
-      {
-        geometry: 'column',
-        isStack: true,
-        seriesField: 'type',
-      },
-      {
-        geometry: 'line',
-        color: '#9A67BD',
-        smooth: true,
-        lineStyle: {
-          lineWidth: 2,
-          stroke: '#9A67BD',
-        },
-      },
-    ],
-    // children: [
-    //   {
-    //     type: 'area',
-    //     xField: 'semester',
-    //     yField: ['total', 'non_a_grade'],
-    //     shapeField: 'smooth',
-    //     // transform: [{ type: 'groupX', y: 'mean', y1: 'mean' }],
-    //     style: { fill: '#85c5A6', fillOpacity: 0.3 },
-    //     axis: { y: { title: 'A 人数 / 总人数 (人)', titleFill: '#85C5A6' } },
-    //     tooltip: {
-    //       items: [
-    //         { channel: 'y', valueFormatter: '.1f' },
-    //         { channel: 'y1', valueFormatter: '.1f' },
-    //       ],
-    //     },
-    //   },
-    //   {
-    //     type: 'line',
-    //     xField: 'semester',
-    //     yField: 'ave_gpa',
-    //     shapeField: 'smooth',
-    //     // transform: [{ type: 'groupX', y: 'mean' }],
-    //     style: { stroke: 'steelblue' },
-    //     scale: { y: { nice: false } },
-    //     axis: {
-    //       y: {
-    //         position: 'right',
-    //         title: '平均绩点',
-    //         titleFill: 'steelblue',
-    //       },
-    //     },
-    //     tooltip: { items: [{ channel: 'y', valueFormatter: '.1f' }] },
-    //   },
-    // ],
-  };
-
-  //   return <DualAxes {...config} />;
-  // }
 
   return (
     <ThemeProvider theme={theme}>
@@ -509,8 +500,6 @@ function App() {
 
           <Card>
             {/* <ARateGraph /> */}
-            {/* {backdropOpened ? (<Skeleton variant="rectangular" width="100%" height={80} />) :
-              (<div style={{ height: 80, paddingTop: 10 }}><AreaChart {...arateConfig} /></div>)} */}
             <div style={{ height: 80, paddingTop: 10 }}><AreaChart {...arateConfig} data={arateOverview} /></div>
             <CardContent>
               <Typography variant="h4" component="div" style={{ fontWeight: 'bolder', paddingTop: '10px' }}>{courseName}</Typography>
@@ -529,7 +518,7 @@ function App() {
               >
                 <Grid xs={4} sm={6} md={8} item>
                   {/* <TotalGraph /> */}
-                  <DualAxes {...totalConfig} />
+                  <DualAxes {...totalConfig} data={[totalOverview, totalOverview]} />
                 </Grid>
                 <Grid xs={4} sm={2} md={4} columns={4}
                   direction="column"
@@ -537,11 +526,11 @@ function App() {
                   alignItems="center">
                   <Grid xs={4} item>
                     {/* <ARateRecentGraph /> */}
-                    <LiquidChart {...arateRecentConfig} />
+                    <LiquidChart {...arateRecentConfig} percent={(arateOverview.length > 0 ? arateOverview[arateOverview.length - 1].value : 0)} />
                   </Grid>
                   <Grid xs={4} item>
                     {/* <PersonaGraph /> */}
-                    <PieChart {...personaConfig} />
+                    <PieChart {...personaConfig} data={seriesOverview} />
                   </Grid>
                 </Grid>
               </Grid>
@@ -552,7 +541,7 @@ function App() {
           <Stack spacing={2}>
             <Typography variant="h6" align="center" gutterBottom>给分趋势</Typography>
             {/* <TrendGraph /> */}
-            <ColumnChart {...trendConfig} />
+            <ColumnChart {...trendConfig} data={gpaOverview} />
           </Stack>
 
           <Stack spacing={2}>
@@ -575,7 +564,9 @@ function App() {
               ))}
             </ToggleButtonGroup>
 
-            {semesterLoading ? <Skeleton height={650} variant="rounded" /> : <DetailGraph />}
+            <div style={{ height: '650px' }}>
+              <ColumnChart {...allInfoConfig} data={data} />
+            </div>
 
             <Typography variant="body2" align="center" color="textSecondary" >
               数据来自 OpenGPA 数据库，仅供参考
@@ -585,7 +576,7 @@ function App() {
               提供更多数据，让 OpenGPA 更加完善
             </Typography>
 
-            <Button variant="contained" color="primary" onClick={() => setDialogOpen(true)}  style={{ marginBottom: '50px' }}>提供数据</Button>
+            <Button variant="contained" color="primary" onClick={() => setDialogOpen(true)} style={{ marginBottom: '50px' }}>提供数据</Button>
 
             <Dialog
               open={dialogOpen}
