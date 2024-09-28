@@ -6,8 +6,8 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
 function wrapUrl(url: string) {
-  const urlprefix = process.env.NODE_ENV === 'development' ? 'http://localhost:8787' : 'https://api.opengpa.icu';
-  // const urlprefix = "https://api.opengpa.icu";
+  // const urlprefix = process.env.NODE_ENV === 'development' ? 'http://localhost:8787' : 'https://api.opengpa.icu';
+  const urlprefix = "https://api.opengpa.icu";
   return urlprefix + url;
 }
 
@@ -273,11 +273,19 @@ function App() {
 
         // gpa overview
         var gparesult = [] as GPAOverview[];
+        var gpatemplate = { '4.0': 0, '3.7': 0, '3.3': 0, '3.0': 0, '2.7': 0, '2.3': 0, '2.0': 0, '1.7': 0, '1.3': 0, '1.0': 0, '0.7': 0, '0.0': 0, '未通过': 0 };
+        // combine result['gpa'] with gpatemplate
         Object.keys(result['gpa']).forEach((sem) => {
-          Object.keys(result['gpa'][sem]).forEach((grade) => {
-            gparesult.push({ semester: sem, gpa: grade, value: result['gpa'][sem][grade] })
-          })
+          Object.keys(gpatemplate).forEach((grade) => {
+            if (!result['gpa'][sem].hasOwnProperty(grade)) {
+              gparesult.push({ semester: sem, gpa: grade, value: 0 });
+            } else {
+              gparesult.push({ semester: sem, gpa: grade, value: result['gpa'][sem][grade] });
+            }
+          });
         });
+
+        // console.log(gparesult);
 
         gparesult.sort();
 
